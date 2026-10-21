@@ -1,0 +1,285 @@
+1. 项目目标
+将推荐的海外医疗注塑相关信息源整合到现有医塑情报采集体系，形成可维护、可监控、可逐步扩展的信源注册表与采集流程。重点提升专业资讯覆盖、发布时间识别、正文解析、跨源去重和现有筛选规则的执行稳定性。
+本次属于现有系统增量改造，不得以新建一套平行系统替代现有采集与分析链路。
+1.1 本次必须达成
+1. 建立统一信源注册表，登记本文列出的 13 个来源入口，并记录来源类别、优先级、主题范围、采集方式、轮询周期、启用状态与最近运行结果。
+2. 优先启用与医疗塑料、注塑工艺、医用材料和医疗制造直接相关的信源；其他来源先完成连通性测试，再分批启用。
+3. 每个来源优先采用官方 RSS/Atom 或站点公开列表页。RSS 地址必须现场发现、验证后才可以启用，不允许凭经验猜测 feed URL。
+4. 统一资讯元数据，准确区分新闻发布时间、抓取时间、AI 分析时间和进入精选的时间。
+5. 保留现有硬筛选、六维评分权重和七维度 AI 分析规则。此次不调整业务阈值和权重，除非先报告发现的实现缺陷并取得明确批准。
+6. 保留未通过精选筛选的资讯，继续显示在「全部资讯」并说明未通过原因。
+7. 为单个来源设置独立状态、失败原因、重试和降频机制，禁止一个来源失败导致整轮采集失败。
+8. 上线前完成测试环境验证、回归测试、灰度启用与回滚准备。
+1.2 明确不在本次范围内
+- CRM、联系人、客户档案、销售任务、跟进责任人或商机状态管理。
+- 将新闻自动认定为注塑机采购机会。
+- 重做网站品牌、全面重构前端或迁移现有数据存储。
+- 绕过登录、付费墙、验证码、WAF、访问控制或网站的技术限制。
+- 将媒体完整文章复制并公开展示。页面应保留来源、原文链接和必要的摘要/短摘录。
+- 在没有验证可用性和授权的情况下，启用未经确认的 RSS、第三方代理或非官方抓取服务。
+2. 当前业务规则：必须保留
+根据现有网站「关于」说明，本项目的精选硬筛选条件为：
+- 新闻发布时间位于最近 360 天；
+- 至少命中一个产品词或同类词；
+- 至少命中一个工艺词，或至少命中一个事件信号词。
+三项之间的关系是：时间条件 AND 产品词命中 AND（工艺词命中 OR 事件信号词命中）。未通过精选筛选的资讯仍需保存，并显示可追溯的未通过原因。
+现有六维评分及权重必须原样保留：
+评分维度	权重
+注塑直接相关性	25%
+投资事件强度	20%
+产品匹配度	20%
+采购时效性	15%
+客户价值	10%
+信息完整度	10%
+
+
+现有详情分析的七个维度也必须保留：资讯价值、商机价值、行动价值、产品匹配、竞争情况、伊之密优势、伊之密短板。它们是内容分析维度，不得与六维量化评分混为一套指标。
+本次允许的改进： 更准确提取日期、保留匹配证据、记录筛选失败原因、修复重复内容、增加信源健康状态，以及将事实与 AI 推断分开呈现。不得仅因为新增了官方法规源或企业新闻源就放宽现有硬筛选条件。
+3. 海外信息源注册表
+以下 URL 是信源入口，不等于已在 Coze 运行环境验证成功的抓取端点。正式启用前必须在目标 Coze 项目中完成连通性、列表解析、详情解析和时间提取测试。
+S01｜Plastics Today — Medical
+入口：https://www.plasticstoday.com/end-markets/medical
+价值：核心专业媒体，覆盖医疗塑料、微注塑、医用材料与医疗制造投资。
+级别/方式/周期：P0；官方列表页优先，RSS 需现场验证；每 4 小时。
+初始状态：测试通过后启用。
+S02｜Plastics Today — Injection Molding
+入口：https://www.plasticstoday.com/plastics-processing/injection-molding
+价值：注塑工艺、模具、设备、LSR 与注塑产业链。
+级别/方式/周期：P0；官方列表页优先，RSS 需现场验证；每 4 小时。
+初始状态：测试通过后启用。
+S03｜Medical Design & Outsourcing
+入口：https://www.medicaldesignandoutsourcing.com/
+备用栏目索引：https://www.medicaldesignandoutsourcing.com/supplies-components-index/
+价值：医疗器械设计、组件、材料、制造、并购与合同制造。
+级别/方式/周期：P0；官网列表页/栏目索引优先，RSS 仅在验证后使用；每 4 小时。
+初始状态：RSS 待验证，先测试列表页。
+S04｜Injection World
+入口：https://magazines.amiplastics.com/injection-world
+价值：注塑设备、模具、辅助设备、聚合物及加工技术；以期刊/专题为主。
+级别/方式/周期：P1；官网期刊内容页/文章列表；每 24 小时。
+初始状态：待验证。
+S05｜SPE Medical Plastics Division
+入口：https://mpd.4spe.org/news/
+价值：专业协会的医用塑料、聚合物、技术活动、白皮书和行业研究。
+级别/方式/周期：P1；官方 News 页面及其明确链接；每 24 小时。
+初始状态：待验证。
+S06｜Medical Device Network — Manufacturing
+入口：https://www.medicaldevice-network.com/manufacturing/
+导航/站点地图：https://www.medicaldevice-network.com/sitemap/
+价值：医疗制造、生产基地、合同制造和供应链资讯。
+级别/方式/周期：P0；官方栏目页；通过站点导航发现 Materials 等栏目，不猜测 URL；每 4 小时。
+初始状态：测试通过后启用。
+S07｜Medical Product Outsourcing（MPO）
+出版方品牌页：https://rodmanmedia.com/brands/mpo/index.php
+候选公开站点：https://www.mpomag.com/
+价值：医疗器械外包制造、OEM/供应商关系、制造最佳实践与产业动态。
+级别/方式/周期：P1；先核实出版方链接指向的当前公开站点，再测试列表；每 12 小时。
+初始状态：待验证，未确认前不启动抓取。
+S08｜MedTech Dive
+入口：https://www.medtechdive.com/
+价值：医疗科技企业、产业政策、制造与市场变化；需严格二次筛选。
+级别/方式/周期：P1；官网公开新闻列表或已验证 RSS；每 6 小时。
+初始状态：待验证。
+S09｜FDA CDRH — News & Updates
+入口：https://www.fda.gov/medical-devices/medical-devices-news-and-events/cdrh-new-news-and-updates
+备用入口：https://www.fda.gov/medical-devices/medical-devices-news-and-events
+价值：美国官方监管、召回、安全通知、指导文件及标准信息。
+级别/方式/周期：P1；官方更新列表及其公开订阅/RSS 入口；每 6 小时。
+初始状态：待验证。
+S10｜European Commission — Medical Devices
+入口：https://health.ec.europa.eu/medical-devices-new-regulations_en
+价值：欧盟医疗器械法规、MDR/IVDR、实施条例与监管更新。
+级别/方式/周期：P1；官方 Latest updates 与公告链接；每 12 小时。
+初始状态：待验证。
+S11｜Rosti — News
+入口：https://www.rosti.com/resources/news/
+价值：医疗注塑/合同制造企业官方信息，包括洁净室、产能、工厂与能力建设。
+级别/方式/周期：P0；官方新闻列表及分页链接；每 12 小时。
+初始状态：测试通过后启用。
+S12｜Phillips-Medisize
+入口：https://phillipsmedisize.com/
+价值：医疗器械设计制造、药物递送、模塑及制造能力的企业官方信息。
+级别/方式/周期：P1；先从官网导航发现并验证 News/Events/Insights 列表；每 12 小时。
+初始状态：待验证。
+S13｜Freudenberg Medical — News & Success Stories
+入口：https://www.freudenbergmedical.com/about/news-success-stories
+价值：医疗组件、精密模塑、洁净室、制造扩张与企业官方发布。
+级别/方式/周期：P0；官方新闻/新闻稿列表；过滤与注塑无关的内容；每 12 小时。
+初始状态：测试通过后启用。
+3.1 信源分批上线策略
+首批（P0）： S01、S02、S03、S06、S11、S13。S12 作为待验证来源先登记，但不要因为首页有新闻卡片就默认可以稳定解析；验证其正式新闻列表入口后再启用。优先验证专业媒体和医疗制造企业官方新闻。
+第二批（P1）： S04、S05、S07、S08、S09、S10，以及完成验证后的 S12。对协会、期刊、法规和广泛医疗产业新闻源使用更严格的主题筛选，不要把全站资讯无差别灌入精选列表。
+所有来源均先登记；只有通过 Coze 运行测试的来源才可将 enabled 设为 true。来源优先级不是内容真实性等级，也不是精选分数。
+3.2 关于 RSS 和入口校验的特殊要求
+- 不允许假设任一域名都支持 /feed/、/rss 或类似路径。
+- https://www.medicaldesignandoutsourcing.com/feed/ 在本次外部检查中未能正常读取。因此 S03 不得将它写死为唯一抓取端点；先测试公开文章列表和站点导航。如能从页面声明或官方链接发现其他 Feed，再进行 GET 测试。
+- 在正式启用 RSS 前，至少验证 HTTP 状态、Content-Type、XML 可解析性、条目数量、标题、链接、发布日期和至少一篇详情页可访问性。
+- 对站点列表页，先读取公开 HTML 并识别文章链接；若需要 JS 渲染，只有在网站允许且 Coze 能稳定渲染时才使用浏览器节点。不可自动绕过验证码、WAF、登录或付费内容。
+- MPO 需先通过 Rodman Media 官方品牌页核实当前公开站点入口，再启用；不得依据搜索结果猜测新地址。
+4. 推荐的采集架构
+在现有 Coze 工作流上增量改造，建议使用以下链路：
+1. 定时触发器： 按来源自己的 poll_interval_minutes 调度，不应所有来源统一高频轮询。
+2. 读取信源注册表： 只处理 enabled=true 且状态非禁用的来源。
+3. 来源适配器： 按 fetch_mode 调用 RSS/Atom 解析、公开列表页解析、官方站点地图或已验证的专用接口。
+4. 列表链接标准化： 生成 canonical URL，删除 utm_*、fbclid 等跟踪参数，保留确实影响内容的参数。
+5. 增量抓取： 优先抓取最近新增文章；建议每轮每源先获取最近 30–50 条列表记录，具体数量依据页面结构和 Coze 节点能力调整。
+6. 去重预检： 先按规范化 URL/来源文章 ID 精确去重，再进行标题与日期辅助去重。
+7. 详情抓取与正文解析： 至少提取标题、原文 URL、发布日期、正文/摘要。解析失败的记录仍保存元数据并标记失败，不要伪造正文。
+8. 字段标准化： 日期统一解析并转换；数据库内部建议存储 UTC 时间，网站展示使用 Asia/Singapore 时区。
+9. 原有硬筛选： 原封不动执行第 2 章的 AND/OR 规则。日期无法确认时不能自动通过 360 天条件；保留至「全部资讯」，状态为 date_unverified，等待后续解析，不得自动标为精选。
+10. 原有六维评分和七维分析： 对通过筛选的内容继续调用现有评分、分析节点。确保每个结论有来源证据，明确区分原文事实与 AI 推断。
+11. 存储与页面数据更新： 写入现有数据表或数据库，避免创建重复表、改变现有字段含义或覆盖历史文章。
+12. 运行日志与告警： 记录每源抓取结果、解析率、错误码、耗时、最后成功时间和重试次数。
+如果当前 Coze 工作流已包含其中某些节点，应复用并补齐缺项，而不是复制创建第二套调度任务。
+5. 统一数据字段要求
+5.1 信源注册表（建议字段）
+字段	类型/示例	说明
+source_id	字符串，如 S01	稳定唯一 ID，不随名称变化
+source_name	字符串	页面展示的来源名称
+source_type	enum	industry_media / association / regulator / manufacturer
+entry_url	URL	官方公开栏目或入口
+fallback_url	URL 或空	已验证的备用公开入口；未验证时为空
+topic_tags	数组	medical_plastics、injection_molding 等
+priority	P0/P1	接入优先级
+fetch_mode	enum	rss / html_listing / sitemap / manual_review
+poll_interval_minutes	整数	建议轮询周期，实际须符合网站访问规则
+enabled	布尔	只有测试通过后可启用
+validation_status	enum	pending / passed / blocked / needs_review
+last_success_at	datetime/null	最近一次成功采集时间
+last_error_code	字符串/null	最近一次错误代码或类型
+last_error_at	datetime/null	最近一次失败时间
+success_count / failure_count	整数	累计运行统计或按时间窗口统计
+
+
+5.2 资讯标准字段（映射到现有数据模型）
+- article_id：内部唯一标识。
+- source_id、source_name、source_type：来源身份。
+- title、original_title、author、language：内容元数据。
+- original_url、canonical_url、source_article_id：可追溯原始地址与去重键。
+- published_at、published_at_raw、published_at_confidence：发布时间、原始日期文本及解析置信度。
+- fetched_at：本次首次抓取时间；重复抓取更新最后检查时间，不得覆盖 published_at。
+- analyzed_at：最近一次 AI 分析时间。
+- selected_at：首次进入精选的时间；重评分不应无条件伪装为新发布。
+- body_text 或 content_excerpt：依照必要性及网站使用条款保存全文或有限摘录；对外展示以摘要为主，保留原文链接。
+- matched_product_terms、matched_process_terms、matched_event_terms：命中的关键词及证据位置。
+- filter_status、filter_reasons：通过/未通过/日期待核实及逐项原因。
+- score_relevance、score_investment、score_product_fit、score_timeliness、score_customer_value、score_completeness、score_total：现有六维评分映射字段。若数据库已有字段，必须沿用，不重复创建同义字段。
+- analysis_json 或现有分析字段：存放现有七维分析。
+- duplicate_group_id、duplicate_of_article_id：重复报道/事件归并关系。
+- parse_status、parse_error：正文解析状态及错误信息。
+字段名称为逻辑建议；开发 Agent 必须先检查现有数据表，优先做映射，不得盲目按本文重复建表。
+6. 去重与事件归并规则
+按以下顺序实施：
+1. 精确去重： 同一 canonical_url 或同一来源文章 ID 不重复新建记录。规范化 URL 时剔除追踪参数但保留必要的内容参数。
+2. 标题近似去重： 标题标准化后相似且发布时间接近时，作为候选重复；不得只因出现相同企业名称就直接合并。
+3. 跨来源同一事件： 保留各来源独立记录与原文链接，另建立 duplicate_group_id 或事件聚合关系。精选列表可突出一条主记录，并标注“另有 N 个来源报道”。
+4. 更新已存在文章： 更新 last_seen_at、解析状态等运行字段；原始发布日期和原文 URL 不因二次抓取而改变，除非记录变更日志。
+5. 合并可撤销： 允许纠正错误归并，保留来源记录，不做不可逆删除。
+7. 行业相关性筛选要求
+继续使用现有关键词词库与硬筛选条件，不在本次擅自改变权重。新增信源后需特别检查以下工艺边界：
+- 明确注塑、微注塑、精密注塑、液态硅胶注塑、模内嵌件/多材料成型等，属于直接注塑相关证据。
+- 热成型、挤出、吹塑、增材制造等是不同加工方式。即使属于医疗塑料行业，也不能仅凭“塑料/医疗/扩产/并购”推断为注塑设备需求。
+- 若文章涉及医疗塑料，但没有证据表明涉及注塑，应保留资讯，并如实降低注塑直接相关性或标记“工艺未确认”。
+- 法规及监管来源只在涉及医疗器械制造、材料、生产质量、灭菌/洁净室要求、产品召回或本网站词库定义的主题时进入精选；不得因为来源官方而跳过硬筛选。
+- 企业官方新闻要标明来源属性为 manufacturer，不得把企业的宣传描述当作独立验证的市场事实。
+- 若现有硬筛选的产品词、工艺词和事件词需要扩词，应另行输出“词库变更提案”，包含新增词、同义词、反例和回归样本，未经批准不得自动改写现有词库。
+8. 采集异常与降级策略
+情况	处理要求	禁止行为
+RSS 返回 404 或非 XML	标记该 RSS 端点无效；转测官方列表页/站点地图	不得反复重试错误 feed 或猜测其他路径后直接启用
+403、验证码、WAF 或登录页	标记 blocked，降频并寻找官方公开替代入口；需要人工核验	不绕过访问控制，不使用隐蔽代理规避限制
+429 限流	使用退避重试，降低轮询频率	不提高并发或重复请求
+TLS/证书异常	记录证书/连接错误，重试一次后报警或暂停该端点	不关闭证书校验、不忽略 HTTPS 安全错误
+超时/5xx	指数退避，建议最多 3 次；最终失败只影响该来源	不将失败当成“没有新文章”
+列表可读、正文解析失败	保存标题、URL、来源及日期等元数据；标记 parse_failed	不生成貌似准确的摘要代替正文
+缺失或含糊发布日期	保留原始日期字符串并标记 date_unverified	不使用抓取时间伪造发布日期以通过 360 天筛选
+页面结构变化	保存最近 HTML/解析错误样本，进入 needs_review	不静默写入空标题或错误字段
+单一来源连续失败	该来源暂停或退避，其余来源照常运行	不让一个信源失败中断全量采集
+
+
+9. Coze 页面与可观测性要求
+本次不重做整个网站 UI；仅对现有页面作必要增量：
+1. 「关于」页面将 13 个来源分组展示：专业媒体、协会/技术、监管机构、制造商官方新闻。
+2. 每个来源显示名称、主题范围、启用状态、最近成功采集时间和最近错误（用户端仅展示简要状态；详细错误放内部日志/调试输出）。
+3. 显示“最近成功采集时间”和“最新新闻发布时间”，不可用一个“最近抓取”指标替代两者。
+4. 首页/全部资讯继续使用现有布局与筛选规则；新增信源须复用现有分类与精选标识，不添加 CRM/跟进按钮。
+5. 对用户可见的资讯卡片应显示来源、原始发布日期、摘要及原文入口。抓取日期不得替代发布日期。
+6. 同一事件跨源归并时，保留原始来源可点击入口并清楚标注多来源报道。
+10. 运行频率与容量建议
+以下是建议初值，不是对网站允许频率的保证。Coze 中应做成每源可配置参数，并在确认 robots.txt、网站条款及实际限流后调整。
+- 专业媒体高频栏目：每 4 小时一次。
+- 综合医疗媒体：每 4–6 小时一次。
+- 官方法规更新页：每 6–12 小时一次。
+- 企业官方新闻：每 12 小时一次。
+- 协会/期刊/低频专题：每 24 小时一次。
+- 每轮每来源先取最近 30–50 条列表项或自上次成功时间之后的增量；如果能使用可靠的 Last-Modified、ETag 或已存最大发布时间，应优先进行增量判断。
+- 给每个来源单独设定超时、最大重试次数、请求并发和最小间隔，避免集中并发请求影响运行稳定性。
+11. 测试与验收标准
+11.1 来源连通性验收
+- 13 条信源配置全部落表，来源 ID 唯一，无空白官方入口。
+- P0 来源逐一在 Coze 测试环境运行成功；每个来源至少验证 10 条近期列表记录或实际可取得的全部记录。
+- 每篇列表记录可提取标题和原文链接；可提取的发布日期覆盖率目标不低于 90%。如果单个来源低于目标，不得无提示启用精选，需标记 needs_review 并提交修复说明。
+- 每个 P0 来源至少成功解析 3 篇正文；不足 3 篇时记录样本限制，不得伪报通过。
+- RSS 仅在返回状态成功、Content-Type/XML 结构有效、条目字段可解析后标记为 passed。
+11.2 规则回归验收
+- 为硬筛选准备至少 20 个测试样本，覆盖通过、超出 360 天、缺少产品词、缺少工艺词和事件词、日期未知以及多条件失败。
+- 硬筛选 AND/OR 关系与现有「关于」规则一致；20 个样本全部符合预期。
+- 六维评分权重仍为 25/20/20/15/10/10，总权重 100%；使用已知输入测试，总分计算与现有算法一致。
+- 七维分析输出字段和页面模块未被删除或与量化评分混淆。
+- 至少准备 10 组同 URL、追踪参数变化、同标题不同来源、同事件不同报道时间的去重样本，确保没有错误覆盖来源或错合并不相关事件。
+11.3 页面与监控验收
+- 「关于」页面可展示来源分组与真实运行状态；未实际测试的来源必须显示“待验证”，不能显示“正常”。
+- 失败来源有错误状态和时间，且不会使其他来源的任务中断。
+- 首页显示的最新资讯按 published_at 排序，而不是 fetched_at。
+- 一篇旧文章被重新采集后，不应因抓取时间更新而显示为最新新闻。
+- 未通过精选规则的文章可在「全部资讯」看到原因；日期未知不得自动通过日期规则。
+- 所有展示的资讯有可用原始来源链接；存储和显示遵守来源网站的公开访问条款。
+11.4 正式发布准入门槛
+只有在下列条件全部满足时才允许发布到正式环境：
+1. 现有工作流、数据表及发布版本已备份或可回滚；
+2. P0 信源测试通过，P1 来源未验证时保持禁用状态；
+3. 硬筛选、评分权重和详情分析回归测试通过；
+4. 首页、全部资讯、热点榜、详情页和「关于」页面均完成回归；
+5. 连续至少 2 轮完整定时采集成功，且运行日志能解释每个来源的成功或失败；
+6. 有发布后的观察方案和回滚步骤。
+12. 发布与回滚步骤
+1. 导出/备份当前 Coze 工作流、关键节点配置和关联数据表结构。
+2. 在测试环境新增信源注册表并导入 source_registry.json 的逻辑字段。JSON 是映射模板，不是未经转换即可导入所有 Coze 项目的平台原生工作流文件。
+3. 对每个来源配置适配器，逐条完成连通性和解析测试，保存实际测试结果。
+4. 先启用 P0 来源；P1 来源保持 enabled=false，完成验证后逐个开启。
+5. 执行规则回归、去重回归、页面回归和至少 2 轮定时任务测试。
+6. 在维护窗口发布到正式环境；逐一核查首页、全部资讯、热点榜、详情页及「关于」页。
+7. 发布后观察首轮运行日志及下一轮定时结果；如新增信源引起采集崩溃、数据重复或页面时间排序异常，先禁用新来源，必要时回滚工作流至上一版本。
+8. 在发布记录中登记版本号、发布时间、已启用 source_id、尚未启用来源和测试结果。
+回滚原则： 优先关闭本次新增来源或恢复来源适配器配置；不要删除历史文章。若需回退工作流版本，必须保留本次新增的数据字段并保证旧版本能够安全忽略新增字段。
+13. 给 Coze 开发 Agent 的执行指令
+请在已经连接的目标 Coze 项目中执行以下任务。先读取现有工作流、数据表、页面路由和「关于」页面规则，再按本文完成增量改造。
+1. 不重建项目；不创建平行的采集和评分体系；尽可能复用现有节点和表结构。
+2. 导入并检查 source_registry.json，将所有 13 个来源登记到现有配置存储中。没有通过真实测试的来源保持禁用。
+3. 先实施 P0 来源和统一字段，再完成 P1 来源的验证、分组与逐步启用。
+4. 保留 360 天时间筛选、产品词 AND、（工艺词 OR 事件词）关系，以及六维评分权重和七维分析结构。
+5. 不假定所有来源都有 RSS，不绕过访问控制，不以抓取时间填充新闻发布时间，不自动把不同工艺等同于注塑。
+6. 为每个来源生成测试报告，包括：测试时间、请求入口、HTTP/解析结果、列表数量、发布日期覆盖率、详情解析样本、错误原因和最终启用状态。
+7. 按第 11 章执行验收。测试不通过时输出明确阻塞项，不得伪报完成。
+8. 测试通过后备份当前配置，发布正式环境，验证网站公开 URL，并给出发布版本、启用来源清单、测试结果和回滚方式。
+9. 若当前 Agent 无权访问目标 Coze 工作区、无权修改工作流或无权发布，请停止在预生产阶段，并明确指出缺失权限；不得声称已经部署。
+14. 交付清单
+- 本 FS 文档（Markdown 与 Word 两种格式）。
+- source_registry.json：信源注册表映射模板，供开发 Agent 按现有数据结构导入。
+- source_registry.csv：供人工核对、批量录入或做配置表格使用。
+- Coze_Agent_执行指令.md：可复制给已连接目标项目的 Coze 开发 Agent。
+- 正式部署后由开发 Agent 追加实际运行测试报告和发布记录。本文档本身不是已发布状态证明。
+15. 官方信源入口参考
+以下是登记入口的来源参考。入口可访问不代表其 RSS、正文解析和 Coze 采集均已验证。
+- Plastics Today Medical：https://www.plasticstoday.com/end-markets/medical
+- Plastics Today Injection Molding：https://www.plasticstoday.com/plastics-processing/injection-molding
+- Medical Design & Outsourcing：https://www.medicaldesignandoutsourcing.com/；组件与制造分类索引：https://www.medicaldesignandoutsourcing.com/supplies-components-index/
+- Injection World：https://magazines.amiplastics.com/injection-world
+- SPE Medical Plastics Division：https://mpd.4spe.org/news/
+- Medical Device Network Manufacturing：https://www.medicaldevice-network.com/manufacturing/；站点导航/站点地图：https://www.medicaldevice-network.com/sitemap/
+- Medical Product Outsourcing 出版方品牌页：https://rodmanmedia.com/brands/mpo/index.php
+- MedTech Dive：https://www.medtechdive.com/
+- FDA CDRH New - News and Updates：https://www.fda.gov/medical-devices/medical-devices-news-and-events/cdrh-new-news-and-updates
+- European Commission — Medical Devices：https://health.ec.europa.eu/medical-devices-new-regulations_en
+- Rosti News：https://www.rosti.com/resources/news/
+- Phillips-Medisize：https://phillipsmedisize.com/
+- Freudenberg Medical News & Success Stories：https://www.freudenbergmedical.com/about/news-success-stories
